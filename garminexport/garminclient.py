@@ -182,7 +182,7 @@ class GarminClient(object):
         :returns: A list of activity identifiers, timestamps, and stationary flags (indicates no GPS/time track)
         :rtype: list of (int, datetime, bool) tuples
         """
-        log.debug("fetching activities {} through {} ...".format(
+        log.info("fetching activities {} through {} ...".format(
             start_index, start_index+max_limit-1))
         response = self.session.get(
             "https://connect.garmin.com/proxy/activity-search-service-1.2/json/activities", params={"start": start_index, "limit": max_limit})
