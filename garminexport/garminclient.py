@@ -348,7 +348,7 @@ class GarminClient(object):
         return orig_file if fmt=='fit' else None
 
     @require_session
-    def upload_activity(self, file, format=None, name=None, description=None, activity_type=None, private=None):
+    def upload_activity(self, file, format=None, name=None, description=None, activity_type=None, private=None, compress=False):
         """Upload a GPX, TCX, or FIT file for an activity.
 
         :param file: Path or open file
@@ -373,10 +373,24 @@ class GarminClient(object):
             else:
                 raise Exception(u"could not guess file type for {}".format(fn))
 
-        # upload it
-        files = dict(data=(fn, file))
-        response = self.session.post("https://connect.garmin.com/proxy/upload-service-1.1/json/upload/.{}".format(format),
-                                     files=files)
+        # gzip it for faster upload
+        if compress:
+            files = dict(data=(fn, file))
+            request = requests.Request('POST', "https://connect.garmin.com/proxy/upload-service-1.1/json/upload/.{}".format(format),
+                                       files=files, headers={'Content-Encoding':'gzip'})
+            prepped = self.session.prepare_request(request)
+            with NamedTemporaryFile(suffix='.gz', delete=True) as gzfile:
+                gzip.GzipFile(fileobj=gzfile, mode="wb").write(prepped.body)
+                prepped.headers['Content-Length'] = gzfile.tell()
+                gzfile.seek(0,0)
+                prepped.body = gzfile.read()
+                log.debug(prepped.headers)
+                log.debug(prepped.body[:100])
+                response = self.session.send(prepped)
+        else:
+            files = dict(data=(fn, file))
+            response = self.session.post("https://connect.garmin.com/proxy/upload-service-1.1/json/upload/.{}".format(format),
+                                         files=files)
 
         # check response and get activity ID
         if response.status_code != 200:
