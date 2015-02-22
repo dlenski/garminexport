@@ -10,7 +10,7 @@ import requests
 from StringIO import StringIO
 import sys
 import zipfile
-import dateutil
+import dateutil.parser
 
 #
 # Note: For more detailed information about the API services
@@ -32,11 +32,11 @@ log = logging.getLogger(__name__)
 # reduce logging noise from requests library
 logging.getLogger("requests").setLevel(logging.ERROR)
 
-
 def require_session(client_function):
     """Decorator that is used to annotate :class:`GarminClient`
     methods that need an authenticated session before being called.
     """
+    @wraps(client_function)
     def check_session(*args, **kwargs):
         client_object = args[0]
         if not client_object.session:
@@ -261,6 +261,7 @@ class GarminClient(object):
         return response.text
 
 
+    @require_session
     def get_activity_tcx(self, activity_id):
         """Return a TCX (Training Center XML) representation of a
         given activity.
@@ -277,6 +278,7 @@ class GarminClient(object):
                 activity_id, response.status_code, response.text))        
         return response.text
 
+    @require_session
     def get_activity_fit(self, activity_id):
         """Return a FIT representation for a given activity. If the activity
         doesn't have a FIT source (for example, if it was entered manually
