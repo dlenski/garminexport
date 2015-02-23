@@ -307,8 +307,13 @@ class GarminClient(object):
         zipped_fit_file = response.content
         zip = zipfile.ZipFile(StringIO(zipped_fit_file), mode="r")
         # return the "<activity-activity_id>.fit" entry from the zip archive -- if it exists
-        actfn = str(activity_id) + ".fit"
-        return zip.open(actfn).read() if actfn in zip.namelist() else None
+        contents = zip.namelist()
+        fitfn = str(activity_id) + ".fit"
+        if fitfn in contents:
+            return zip.open(fitfn).read()
+        else:
+            log.debug(u"zip archive contains no fit file: {}".format(contents))
+            return None
 
     @require_session
     def upload_activity(self, file, format=None, name=None, description=None, activity_type=None, private=None):
