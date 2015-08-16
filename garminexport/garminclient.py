@@ -383,10 +383,17 @@ class GarminClient(object):
             raise Exception(u"failed to upload {} for activity: {}\n{}".format(
                 format, response.status_code, response.text))
 
-        j = response.json()
-        if len(j["detailedImportResult"]["failures"]) or len(j["detailedImportResult"]["successes"])!=1:
-            raise Exception(u"failed to upload {} for activity")
-        activity_id = j["detailedImportResult"]["successes"][0]["internalId"]
+        res = response.json()["detailedImportResult"]
+        if len(res["successes"])<1:
+            if res["failures"][0]["messages"] and res["failures"][0]["messages"][0]["content"].startswith("Duplicate"):
+                activity_id = res["failures"][0]["internalId"]
+                log.info("uploaded activity is a duplicate of {}".format(activity_id))
+            else:
+                raise Exception(u"failed to upload {} for activity: {}".format(format, str(res["failures"])))
+        elif len(res["successes"])>1:
+            raise Exception(u"uploaded {} file contained multiple activities".format(format))
+        else:
+            activity_id = res["successes"][0]["internalId"]
 
         # add optional fields
         fields = ( ('name',name,("display","value")),
