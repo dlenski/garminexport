@@ -160,8 +160,8 @@ class GarminClient(object):
         """Return all activity ids stored by the logged in user, along
         with their starting timestamps.
 
-        :returns: The full list of activity identifiers.
-        :rtype: tuples of (int, datetime)
+        :returns: The full list of activity identifiers, timestamps, and stationary flags (indicates no GPS/time track)
+        :rtype: list of (int, datetime, bool) tuples
         """        
         ids = []
         batch_size = 100

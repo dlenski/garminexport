@@ -93,9 +93,9 @@ if __name__ == "__main__":
                 len(missing_activities)))
 
             for index, activity in enumerate(missing_activities):
-                id, start = activity
-                log.info("backing up activity %d from %s (%d out of %d) ..." %
-                         (id, start, index+1, len(missing_activities)))
+                id, start, stationary = activity
+                log.info("backing up %sactivity %d from %s (%d out of %d) ..." %
+                         ("stationary " if stationary else "", id, start, index+1, len(missing_activities)))
                 try:
                     garminexport.backup.download(
                         client, activity, args.backup_dir, args.format)
