@@ -66,7 +66,7 @@ if __name__ == "__main__":
     # if no --format was specified, all formats are to be backed up
     args.format = args.format if args.format else export_formats
     log.info("backing up formats: %s", ", ".join(args.format))
-    
+
     logging.root.setLevel(LOG_LEVELS[args.log_level])
 
     try:
@@ -78,19 +78,18 @@ if __name__ == "__main__":
 
         with GarminClient(args.username, args.password) as client:
             # get all activity ids and timestamps from Garmin account
-            log.info("retrieving activities for {} ...".format(args.username))
+            log.info("scanning activities for %s ...", args.username)
             activities = set(client.list_activities())
-            log.info("account has a total of {} activities.".format(
-                len(activities)))
+            log.info("account has a total of %d activities", len(activities))
 
             missing_activities = garminexport.backup.need_backup(
                 activities, args.backup_dir, args.format)
             backed_up = activities - missing_activities
-            log.info("{} contains {} backed up activities.".format(
-                args.backup_dir, len(backed_up)))
+            log.info("%s contains %d backed up activities",
+                args.backup_dir, len(backed_up))
 
-            log.info("activities that aren't backed up: {}".format(
-                len(missing_activities)))
+            log.info("activities that aren't backed up: %d",
+                     len(missing_activities))
 
             for index, activity in enumerate(missing_activities):
                 id, start, stationary = activity
@@ -105,5 +104,4 @@ if __name__ == "__main__":
                         raise
     except Exception as e:
         exc_type, exc_value, exc_traceback = sys.exc_info()
-        log.error(u"failed with exception: %s", e)
-        raise
+        log.error(u"failed with exception: %s", str(e))
